@@ -1,24 +1,19 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-import { KubeConfig } from '@kubernetes/client-node';
 import { NextResponse } from 'next/server';
+import { KubeConfig } from '@kubernetes/client-node';
 
 type KubeConfigResponse = {
   kubeconfigs: string[];
 };
 
-export async function GET(
-  req: NextApiRequest,
-  res: NextApiResponse<KubeConfigResponse>
-) {
+export async function GET(req: Request) {
   try {
     const kubeConfig = new KubeConfig();
     kubeConfig.loadFromDefault();
 
-    // Retrieve all contexts from the kubeconfig
     const contexts = kubeConfig.getContexts();
     const kubeconfigStrings = contexts.map(context => {
       const contextKubeConfig = new KubeConfig();
-      contextKubeConfig.loadFromOptions({
+      contextKubeConfig.loadFromOptions({ 
         clusters: kubeConfig.getClusters(),
         users: kubeConfig.getUsers(),
         contexts: [context],

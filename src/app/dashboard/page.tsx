@@ -15,7 +15,7 @@ export default function HostClusterDashboard() {
         const { kubeconfigs } = await kubeConfigResponse.json();
 
         // Fetch Virtual Clusters for each kubeconfig
-        const clusterPromises = kubeconfigs.map(async (kubeconfig) => {
+        const clusterPromises = kubeconfigs.map(async (kubeconfig: any) => {
           const response = await fetch('/api/vclusters', {
             method: 'POST',
             headers: {
@@ -51,7 +51,7 @@ export default function HostClusterDashboard() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <CloudIcon className="w-8 h-8 text-gray-900 dark:text-gray-50" />
-                <h2 className="text-xl font-semibold">{console.log(cluster)}</h2>
+                {/* <h2 className="text-xl font-semibold">{console.log(cluster)}</h2> */}
               </div>
               <div className="bg-gray-100 dark:bg-gray-800 px-3 py-1 rounded-full text-sm font-medium text-gray-500 dark:text-gray-400">
                 {/* {cluster.spec.virtualClusters.length} Virtual Clusters */}
