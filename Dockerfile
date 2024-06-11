@@ -28,6 +28,7 @@ RUN adduser -S nextjs -u 1001
 COPY --from=builder --chown=1001:1001 /app/.next ./.next
 COPY --from=builder --chown=1001:1001 /app/package.json ./
 COPY --from=builder --chown=1001:1001 /app/node_modules ./node_modules
+COPY --from=builder --chown=1001:1001 /app/public ./public
 
 USER 1001
 
