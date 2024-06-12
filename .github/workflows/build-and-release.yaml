@@ -44,12 +44,14 @@ jobs:
 
     - name: Get the latest tag
       id: get_tag
-      run: echo ::set-output name=tag::$(git describe --tags --abbrev=0 || echo "v0.0.0")
+      run: |
+        latest_tag=$(git describe --tags `git rev-list --tags --max-count=1` || echo "v0.0.0")
+        echo "tag=$latest_tag" >> $GITHUB_ENV
 
     - name: Calculate next version
       id: calculate_version
       run: |
-        latest_tag=${{ steps.get_tag.outputs.tag }}
+        latest_tag=${{ env.tag }}
         echo "Latest tag: $latest_tag"
         
         if [[ $latest_tag == v* ]]; then
@@ -63,17 +65,32 @@ jobs:
         minor=${version_parts[1]}
         patch=${version_parts[2]}
         
-        patch=$((patch + 1))
+        if [[ "${{ github.event_name }}" == "push" && "${{ github.ref }}" != refs/tags/* ]]; then
+          patch=$((patch + 1))
+        fi
         
         new_version="v$major.$minor.$patch"
+        echo "VERSION=$new_version" >> $GITHUB_ENV
         echo "New version: $new_version"
-        echo ::set-output name=version::$new_version
+        echo "::set-output name=new_version::$new_version"
+
+    - name: Check if Tag Exists
+      id: tag_exists
+      run: |
+        if git rev-parse "refs/tags/${{ steps.calculate_version.outputs.new_version }}" >/dev/null 2>&1; then
+          echo "Tag exists"
+          echo "::set-output name=exists::true"
+        else
+          echo "Tag does not exist"
+          echo "::set-output name=exists::false"
+        fi
 
     - name: Create Release Tag
+      if: steps.tag_exists.outputs.exists == 'false'
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        new_tag=${{ steps.calculate_version.outputs.version }}
+        new_tag=${{ steps.calculate_version.outputs.new_version }}
         git tag $new_tag
         git push https://x-access-token:${GITHUB_TOKEN}@github.com/OpenVirtualCluster/dashboard.git $new_tag
 
